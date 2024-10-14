@@ -1,6 +1,11 @@
-type Handle = () => Promise<string>
-const fullname = 'Lam dai ca'
-const handle : Handle = () => Promise.resolve(fullname)
-handle().then((res)=>{
-  console.log(res)
-})
+const express = require('express')
+
+import usersRouter from './routes/users.routers'
+import databaseService from './services/database.services'
+const app = express()
+const port = 3000
+app.use(express.json())
+app.use('/users', usersRouter)
+databaseService.connect()
+
+app.listen(port, () => console.log(`Example app listening on port ${port}!`))
