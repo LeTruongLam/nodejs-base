@@ -2,15 +2,20 @@ import { Router } from 'express'
 import {
   accessTokenValidator,
   emailVerifyTokenValidator,
+  forgotPasswordValidator,
   loginValidator,
   refreshTokenValidator,
-  registerValidator
+  registerValidator,
+  verifyForgotPasswordTokenValidator
 } from '~/middlewares/users.middlewares'
 import {
   emailVerifyValidator,
+  forgotPasswordController,
   loginController,
   logoutController,
-  registerController
+  registerController,
+  verifyEmailController,
+  verifyForgotPasswordController
 } from '~/controllers/users.controllers'
 import { wrapRequestHandler } from '~/utils/handlers'
 const usersRouter = Router()
@@ -48,5 +53,35 @@ usersRouter.post('/logout', accessTokenValidator, refreshTokenValidator, wrapReq
  */
 
 usersRouter.post('/verify-email', emailVerifyTokenValidator, wrapRequestHandler(emailVerifyValidator))
+
+/**
+ * Description : Resend verify email
+ * Path: /resend-verify-email
+ * Method: POST
+ * Header: {Authorization: Bearer <access_token>}
+ * Body: {}
+ */
+
+usersRouter.post('/resend-verify-email', accessTokenValidator, wrapRequestHandler(verifyEmailController))
+
+/**
+ * Description : Forgot password
+ * Path: /forgot-password
+ * Method: POST
+ * Body: { email: string }
+ */
+usersRouter.post('/forgot-password', forgotPasswordValidator, wrapRequestHandler(forgotPasswordController))
+
+/**
+ * Description : Verify forgot password
+ * Path: /verify-forgot-password
+ * Method: POST
+ * Body: { forgot_password_token: string }
+ */
+usersRouter.post(
+  '/verify-forgot-password',
+  verifyForgotPasswordTokenValidator,
+  wrapRequestHandler(verifyForgotPasswordController)
+)
 
 export default usersRouter

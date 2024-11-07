@@ -3,7 +3,7 @@ import databaseService from './database.services'
 import { RegisterReqBody } from '~/models/requests/User.requests'
 import { hashPassword } from '~/utils/crypto'
 import { signToken } from '~/utils/jwt'
-import { TokenType } from '~/constants/enum'
+import { TokenType, UserVerifyStatus } from '~/constants/enum'
 import RefreshToken from '~/models/schemas/RefreshToken.schema'
 import { ObjectId } from 'mongodb'
 import { config } from 'dotenv'
@@ -46,6 +46,19 @@ class UsersService {
 
       options: {
         expiresIn: process.env.EMAIL_VERIFY_TOKEN_EXPIRES_IN
+      }
+    })
+  }
+  private signForgotPasswordToken(user_id: string) {
+    return signToken({
+      payload: {
+        user_id,
+        token_type: TokenType.EmailVerifyToken
+      },
+      privateKey: process.env.JWT_SECRET_FORGOT_PASSWORD_TOKEN as string,
+
+      options: {
+        expiresIn: process.env.FORGOT_PASSWORD_TOKEN_EXPIRES_IN
       }
     })
   }
@@ -106,13 +119,41 @@ class UsersService {
       this.signAccessAndRefreshToken(user_id),
       databaseService.users.updateOne(
         { _id: new ObjectId(user_id) },
-        { $set: { email_verify_token: '', updated_at: new Date() } }
+        { $set: { email_verify_token: '', verify: UserVerifyStatus.Verified, updated_at: new Date() } }
       )
     ])
     const [access_token, refresh_token] = token
     return {
       access_token,
       refresh_token
+    }
+  }
+
+  async resendVerifyEmail(user_id: string) {
+    const email_verify_token = await this.signEmailVerifyToken(user_id)
+    // Giai su gui email
+    console.log('resend verify email', user_id)
+    // Cap nhat email_verify_token trong document user
+    await databaseService.users.updateOne(
+      { _id: new ObjectId(user_id) },
+      { $set: { email_verify_token }, $currentDate: { updated_at: true } }
+    )
+    return {
+      message: USERS_MESSAGES.RESEND_VERIFY_EMAIL_SUCCESS
+    }
+  }
+  async forgotPassword(user_id: string) {
+    const forgot_password_token = await this.signForgotPasswordToken(user_id)
+    await databaseService.users.updateOne(
+      { _id: new ObjectId(user_id) },
+      { $set: { forgot_password_token }, $currentDate: { updated_at: true } }
+    )
+
+    // Gui email kem duong link den email nguoi dung
+    // Dang https://localhost:3000/reset-password?token=forgot_password_token
+    console.log('forgot password', forgot_password_token)
+    return {
+      message: USERS_MESSAGES.CHECK_EMAIL_TO_RESET_PASSWORD
     }
   }
 }

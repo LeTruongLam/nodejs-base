@@ -1,21 +1,31 @@
 import { NextFunction, Request, Response } from 'express'
 import { ParamsDictionary } from 'express-serve-static-core'
 import usersService from '~/services/users.services'
-import { LogoutReqBody, RegisterReqBody, TokenPayload } from '~/models/requests/User.requests'
+import {
+  ForgotPasswordReqBody,
+  LoginReqBody,
+  LogoutReqBody,
+  RegisterReqBody,
+  TokenPayload,
+  VerifyEmailReqBody,
+  VerifyForgotPasswordReqBody
+} from '~/models/requests/User.requests'
 import { ObjectId } from 'mongodb'
 import User from '~/models/schemas/User.schema'
 import { USERS_MESSAGES } from '~/constants/message'
 import databaseService from '~/services/database.services'
+import { UserVerifyStatus } from '~/constants/enum'
+import HTTP_STATUS from '~/constants/httpStatus'
 /**
  * Login user
  * @param {Request} req - Request object containing user information
  * @param {Response} res - Response object
- * 
+ *
  * @description
  * Logs in a user by generating and returning access and refresh tokens.
  * If login is successful, returns 200 status with message LOGIN_SUCCESS and tokens.
  */
-export const loginController = async (req: Request, res: Response) => {
+export const loginController = async (req: Request<ParamsDictionary, any, LoginReqBody>, res: Response) => {
   const user = req.user as User
   const user_id = user._id as ObjectId
   const result = await usersService.login(user_id.toString())
@@ -29,7 +39,7 @@ export const loginController = async (req: Request, res: Response) => {
  * @param {Request} req - Request object with body containing user register data
  * @param {Response} res - Response object
  * @param {NextFunction} next - Next function
- * 
+ *
  * @description
  * Register new user with given user data. If user already exist, return 400 status with message is EMAIL_ALREADY_EXIST.
  * If password is invalid, return 400 status with message is PASSWORD_IS_INVALID.
@@ -52,7 +62,7 @@ export const registerController = async (
  * Logout user
  * @param {Request} req - Request object
  * @param {Response} res - Response object
- * 
+ *
  * @description
  * Logout user with given refresh token. If user not found, return 404 status with message is USER_NOT_FOUND.
  * If refresh token is invalid, return 400 status with message is REFRESH_TOKEN_IS_INVALID.
@@ -92,5 +102,50 @@ export const emailVerifyValidator = async (req: Request, res: Response, next: Ne
   return res.json({
     message: USERS_MESSAGES.EMAIL_VERIFY_SUCCESS,
     result
+  })
+}
+
+/**
+ * Resend verify email
+ * @param {Request} req - Request object
+ * @param {Response} res - Response object
+ *
+ * @description
+ * Resend verify email to user. If user not found, return 404 status with message is USER_NOT_FOUND.
+ * If user has been verified, return 200 status with message is EMAIL_ALREADY_VERIFIED_BEFORE.
+ * If resend verify email success, return 200 status with message is RESEND_VERIFY_EMAIL_SUCCESS.
+ */
+export const verifyEmailController = async (
+  req: Request<ParamsDictionary, any, VerifyEmailReqBody>,
+  res: Response,
+  next: NextFunction
+) => {
+  const { user_id } = req.decoded_authorization as TokenPayload
+  const user = await databaseService.users.findOne({ _id: new ObjectId(user_id) })
+  if (!user) {
+    return res.status(HTTP_STATUS.NOT_FOUND).json({ message: USERS_MESSAGES.USER_NOT_FOUND })
+  }
+  if (user.verify === UserVerifyStatus.Verified) {
+    return res.json({ message: USERS_MESSAGES.EMAIL_ALREADY_VERIFIED_BEFORE })
+  }
+  const result = await usersService.resendVerifyEmail(user_id)
+  return res.json(result)
+}
+export const forgotPasswordController = async (
+  req: Request<ParamsDictionary, any, ForgotPasswordReqBody>,
+  res: Response,
+  next: NextFunction
+) => {
+  const { _id } = req.user as User
+  const result = await usersService.forgotPassword((_id as ObjectId).toString())
+  return res.json(result)
+}
+export const verifyForgotPasswordController = async (
+  req: Request<ParamsDictionary, any, VerifyForgotPasswordReqBody>,
+  res: Response,
+  next: NextFunction
+) => {
+  return res.json({
+    message: USERS_MESSAGES.VERIFY_FORGOT_PASSWORD_SUCCESS
   })
 }
