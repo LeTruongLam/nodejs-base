@@ -1,5 +1,8 @@
 import { JwtPayload } from 'jsonwebtoken'
 import { TokenType } from '~/constants/enum'
+export interface getProfileReqParams {
+  username: string
+}
 export interface UpdateMeReqBody {
   name?: string
   date_of_birth?: string

@@ -49,5 +49,6 @@ export const USERS_MESSAGES = {
   USERNAME_LENGTH: 'Username length must be between 1 and 50',
   IMAGE_URL_MUST_BE_A_STRING: 'image url must be a string',
   IMAGE_URL_LENGTH: 'image length must be between 1 and 400',
-  UPDATE_ME_SUCCESS: 'Update profile success'
+  UPDATE_ME_SUCCESS: 'Update profile success',
+  GET_PROFILE_SUCCESS: 'Get profile success'
 } as const
