@@ -1,5 +1,16 @@
 import { JwtPayload } from 'jsonwebtoken'
 import { TokenType } from '~/constants/enum'
+export interface UpdateMeReqBody {
+  name?: string
+  date_of_birth?: string
+  bio?: string
+  location?: string
+  website?: string
+  username?: string
+  avatar?: string
+  cover_photo?: string
+}
+
 export interface LoginReqBody {
   email: string
   password: string
@@ -30,7 +41,7 @@ export interface VerifyForgotPasswordReqBody {
 }
 
 export interface ResetPasswordReqBody {
-  password: string  
+  password: string
   confirm_password: string
   forgot_password_token: string
 }

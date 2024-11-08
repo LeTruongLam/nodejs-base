@@ -8,6 +8,7 @@ import {
   RegisterReqBody,
   ResetPasswordReqBody,
   TokenPayload,
+  UpdateMeReqBody,
   VerifyEmailReqBody,
   VerifyForgotPasswordReqBody
 } from '~/models/requests/User.requests'
@@ -17,6 +18,7 @@ import { USERS_MESSAGES } from '~/constants/message'
 import databaseService from '~/services/database.services'
 import { UserVerifyStatus } from '~/constants/enum'
 import HTTP_STATUS from '~/constants/httpStatus'
+import { result } from 'lodash'
 /**
  * Login user
  * @param {Request} req - Request object containing user information
@@ -170,6 +172,16 @@ export const getMeController = async (req: Request, res: Response, next: NextFun
     result: user
   })
 }
-export const updateMeController = async (req: Request, res: Response, next: NextFunction) => {
-  return res.json({})
+export const updateMeController = async (
+  req: Request<ParamsDictionary, any, UpdateMeReqBody>,
+  res: Response,
+  next: NextFunction
+) => {
+  const { user_id } = req.decoded_authorization as TokenPayload
+  const { body } = req
+  const user = await usersService.updateMe(user_id, body)
+  return res.json({
+    message: USERS_MESSAGES.UPDATE_ME_SUCCESS,
+    result: user
+  })
 }

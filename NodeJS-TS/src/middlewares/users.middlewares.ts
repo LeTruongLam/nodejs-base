@@ -553,7 +553,6 @@ export const resetPasswordValidator = validate(
 )
 export const verifiedUserValidator = (req: Request, res: Response, next: NextFunction) => {
   const { verify } = req.decoded_authorization as TokenPayload
-  console.log('verify', verify)
   if (verify !== UserVerifyStatus.Verified) {
     return next(
       new ErrorWithStatus({
@@ -564,3 +563,101 @@ export const verifiedUserValidator = (req: Request, res: Response, next: NextFun
   }
   next()
 }
+export const updateMeValidator = validate(
+  checkSchema({
+    name: {
+      optional: true,
+      isString: { errorMessage: USERS_MESSAGES.NAME_MUST_BE_A_STRING },
+      trim: true,
+      isLength: {
+        options: {
+          min: 1,
+          max: 100
+        },
+        errorMessage: USERS_MESSAGES.NAME_LENGTH_MUST_BE_BETWEEN_1_AND_100
+      }
+    },
+    date_of_birth: {
+      optional: true,
+      isISO8601: {
+        options: {
+          strict: true,
+          strictSeparator: true
+        },
+        errorMessage: USERS_MESSAGES.DATE_OF_BIRTH_IS_ISO8601
+      }
+    },
+    bio: {
+      optional: true,
+      isString: { errorMessage: USERS_MESSAGES.BIO_MUST_BE_A_STRING },
+      trim: true,
+      isLength: {
+        options: {
+          min: 1,
+          max: 200
+        },
+        errorMessage: USERS_MESSAGES.BIO_LENGTH
+      }
+    },
+    location: {
+      optional: true,
+      isString: { errorMessage: USERS_MESSAGES.LOCATION_MUST_BE_A_STRING },
+      trim: true,
+      isLength: {
+        options: {
+          min: 1,
+          max: 200
+        },
+        errorMessage: USERS_MESSAGES.LOCATION_LENGTH
+      }
+    },
+    website: {
+      optional: true,
+      isString: { errorMessage: USERS_MESSAGES.WEBSITE_MUST_BE_A_STRING },
+      trim: true,
+      isLength: {
+        options: {
+          min: 1,
+          max: 200
+        },
+        errorMessage: USERS_MESSAGES.WEBSITE_LENGTH
+      }
+    },
+    username: {
+      optional: true,
+      isString: { errorMessage: USERS_MESSAGES.USERNAME_MUST_BE_A_STRING },
+      trim: true,
+      isLength: {
+        options: {
+          min: 1,
+          max: 50
+        },
+        errorMessage: USERS_MESSAGES.USERNAME_LENGTH
+      }
+    },
+    avatar: {
+      optional: true,
+      isString: { errorMessage: USERS_MESSAGES.IMAGE_URL_MUST_BE_A_STRING },
+      trim: true,
+      isLength: {
+        options: {
+          min: 1,
+          max: 400
+        },
+        errorMessage: USERS_MESSAGES.IMAGE_URL_LENGTH
+      }
+    },
+    cover_photo: {
+      optional: true,
+      isString: { errorMessage: USERS_MESSAGES.IMAGE_URL_MUST_BE_A_STRING },
+      trim: true,
+      isLength: {
+        options: {
+          min: 1,
+          max: 400
+        },
+        errorMessage: USERS_MESSAGES.IMAGE_URL_LENGTH
+      }
+    }
+  })
+)
